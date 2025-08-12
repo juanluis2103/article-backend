@@ -9,7 +9,7 @@ router.get("/course", ArticleController.course);
 //useful routes
 router.post("/create", ArticleController.create);
 router.get("/getArticles", ArticleController.getArticles);
-router.get("/article/:id", ArticleController.getArticleById);
+//router.get("/article/:id", ArticleController.getArticleById);
 
 
 

@@ -68,7 +68,7 @@ const getArticles = async (req, res) => {
     }
 };
 
-const getArticleById = async (req, res) => {
+/*const getArticleById = async (req, res) => {
     try {
         const articleId = req.params.id;
         
@@ -101,10 +101,10 @@ const getArticleById = async (req, res) => {
             error: error.message
         });
     }
-};
+};*/
 
 module.exports = {
     create,
-    getArticles,
-    getArticleById
+    getArticles
+    //getArticleById
 }
