@@ -1,17 +1,6 @@
 
 const validator = require("validator");
 const Article = require("../models/Article")
-const test = (req, res) => {
-    return res.status(200).json({
-        message: "Imma test action for controlling articles"
-    })
-}
-
-const course = (req, res) => {
-    return res.status(200).json({
-        message: "Course endpoint"
-    })
-}
 
 const create = async (req, res) => {
     let params = req.body;
@@ -45,7 +34,17 @@ const create = async (req, res) => {
 
 const getArticles = async (req, res) => {
     try {
-        const result = await Article.find({});
+        const topParam = req.query.top;
+        let query = Article.find({}).sort({ date: -1 });
+
+        if (topParam) {
+            const limit = parseInt(topParam, 10);
+            if (!isNaN(limit) && limit > 0) {
+                query = query.limit(limit);
+            }
+        }
+
+        const result = await query;
 
         if (!result || result.length === 0) {
             return res.status(404).json({
@@ -56,6 +55,7 @@ const getArticles = async (req, res) => {
 
         return res.status(200).json({
             status: "success",
+            items: result.length,
             message: "Articles retrieved successfully",
             articles: result
         });
@@ -68,10 +68,43 @@ const getArticles = async (req, res) => {
     }
 };
 
+const getArticleById = async (req, res) => {
+    try {
+        const articleId = req.params.id;
+        
+        if (!articleId) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid or missing article ID"
+            });
+        }
+
+        const article = await Article.findById(articleId);
+
+        if (!article) {
+            return res.status(404).json({
+                status: "not_found",
+                message: "Article not found"
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            message: "Article retrieved successfully",
+            article: article
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "error",
+            message: "Error retrieving article",
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
-    test,
-    course,
     create,
-    getArticles
+    getArticles,
+    getArticleById
 }
