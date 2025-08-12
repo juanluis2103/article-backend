@@ -68,7 +68,7 @@ const getArticles = async (req, res) => {
     }
 };
 
-/*const getArticleById = async (req, res) => {
+const getArticleById = async (req, res) => {
     try {
         const articleId = req.params.id;
         
@@ -101,10 +101,85 @@ const getArticles = async (req, res) => {
             error: error.message
         });
     }
-};*/
+};
+
+const deleteArticleById = async (req, res) => {
+    try {
+        const articleId = req.params.id;
+        if (!articleId) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid or missing article ID"
+            });
+        }
+
+        const deletedArticle = await Article.findByIdAndDelete(articleId);
+
+        if (!deletedArticle) {
+            return res.status(404).json({
+                status: "not_found",
+                message: "Article not found"
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            message: "Article deleted successfully",
+            article: deletedArticle
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "error",
+            message: "Error deleting article",
+            error: error.message
+        });
+    }
+};
+
+const updateArticleById = async (req, res) => {
+    try {
+        const articleId = req.params.id;
+        const updateData = req.body;
+
+        if (!articleId) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid or missing article ID"
+            });
+        }
+
+        // Opción { new: true } para devolver el artículo actualizado
+        const updatedArticle = await Article.findByIdAndUpdate(articleId, updateData, { new: true, runValidators: true });
+
+        if (!updatedArticle) {
+            return res.status(404).json({
+                status: "not_found",
+                message: "Article not found"
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            message: "Article updated successfully",
+            article: updatedArticle
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            status: "error",
+            message: "Error updating article",
+            error: error.message
+        });
+    }
+};
+
+
 
 module.exports = {
     create,
-    getArticles
-    //getArticleById
+    getArticles,
+    getArticleById,
+    deleteArticleById,
+    updateArticleById
 }
