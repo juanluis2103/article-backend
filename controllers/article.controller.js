@@ -2,6 +2,26 @@
 const validator = require("validator");
 const Article = require("../models/Article")
 
+const validateArticle = (params = {}) => {
+  const t = typeof params.title === "string" ? params.title.trim() : undefined;
+  const c = typeof params.content === "string" ? params.content.trim() : undefined;
+
+  const titleOk =
+    t !== undefined &&
+    !validator.isEmpty(t) &&
+    validator.isLength(t, { min: 5, max: 30 });
+
+  const contentOk =
+    c !== undefined &&
+    !validator.isEmpty(c);
+
+  // Requiere que al menos uno sea válido (title o content)
+  if (!titleOk && !contentOk) {
+    throw new Error("Invalid fields, please send title or content");
+  }
+};
+        
+
 const create = async (req, res) => {
     let params = req.body;
 
@@ -141,15 +161,14 @@ const updateArticleById = async (req, res) => {
     try {
         const articleId = req.params.id;
         const updateData = req.body;
-
+        validateArticle(req.body);
+        
         if (!articleId) {
             return res.status(400).json({
                 status: "error",
                 message: "Invalid or missing article ID"
             });
         }
-
-        // Opción { new: true } para devolver el artículo actualizado
         const updatedArticle = await Article.findByIdAndUpdate(articleId, updateData, { new: true, runValidators: true });
 
         if (!updatedArticle) {
