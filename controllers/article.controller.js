@@ -162,7 +162,7 @@ const updateArticleById = async (req, res) => {
         const articleId = req.params.id;
         const updateData = req.body;
         validateArticle(req.body);
-        
+
         if (!articleId) {
             return res.status(400).json({
                 status: "error",
@@ -193,6 +193,9 @@ const updateArticleById = async (req, res) => {
     }
 };
 
+const uploadImage = async (req, res) => {
+
+}
 
 
 module.exports = {
@@ -200,5 +203,6 @@ module.exports = {
     getArticles,
     getArticleById,
     deleteArticleById,
-    updateArticleById
+    updateArticleById,
+    uploadImage
 }
