@@ -1,21 +1,28 @@
-const {connection} = require("./connection/connection");
+const { connection } = require("./connection/connection");
 const express = require("express");
-const cors = require("cors")
+const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger"); // 👈 importamos
 
-console.log("starting app...")
+console.log("starting app...");
 
 connection();
 const app = express();
 app.use(cors());
 const port = 666;
 
-//change body to .js object
+// Middleware para JSON
 app.use(express.json());
 
-//ROUTES
+// Rutas API
 const article_routes = require("./routes/article");
-app.use("/api", article_routes)
+app.use("/api", article_routes);
 
+// Swagger docs
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Iniciar server
 app.listen(port, () => {
-    console.log("server started in port ", port)
-})
+  console.log("server started in port ", port);
+  console.log(`Docs available at http://localhost:${port}/docs`);
+});
