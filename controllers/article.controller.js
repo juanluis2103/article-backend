@@ -1,6 +1,8 @@
 
 const validator = require("validator");
 const Article = require("../models/Article")
+const path = require("path"); // <-- IMPORTANTE (te faltaba aquí)
+const fs = require("fs");
 
 const validateArticle = (params = {}) => {
   const t = typeof params.title === "string" ? params.title.trim() : undefined;
