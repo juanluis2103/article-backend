@@ -194,9 +194,86 @@ const updateArticleById = async (req, res) => {
 };
 
 const uploadImage = async (req, res) => {
+  const articleId = req.params.id;
 
-}
+  try {
+    // 1) Validar id
+    if (!articleId) {
+      // Si subió archivo pero el id es inválido, borra el archivo
+      if (req.file?.path) try { fs.unlinkSync(req.file.path); } catch {}
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid or missing article ID",
+      });
+    }
 
+    // 2) Validar existencia de archivo
+    if (!req.file) {
+      return res.status(400).json({
+        status: "error",
+        message: "No file uploaded. Field name must be 'file0'.",
+      });
+    }
+
+    // 3) Validar tipo de archivo (doble validación por seguridad)
+    const mimetype = req.file.mimetype?.toLowerCase() || "";
+    const ext = path.extname(req.file.originalname).toLowerCase(); // .jpg / .png
+    const allowedMime = ["image/jpeg", "image/jpg", "image/png"];
+    const allowedExt = [".jpg", ".jpeg", ".png"];
+
+    if (!allowedMime.includes(mimetype)) {
+      // error 1: mimetype inválido
+      try { fs.unlinkSync(req.file.path); } catch {}
+      return res.status(400).json({
+        status: "error",
+        message: "Only JPG and PNG files are allowed (invalid MIME type).",
+      });
+    }
+
+    if (!allowedExt.includes(ext)) {
+      // error 2: extensión inválida
+      try { fs.unlinkSync(req.file.path); } catch {}
+      return res.status(400).json({
+        status: "error",
+        message: "Only JPG and PNG files are allowed (invalid extension).",
+      });
+    }
+
+    // 4) Asociar imagen al artículo
+    const fileName = req.file.filename; // p.e. article_1724500000000.jpg
+    const updated = await Article.findByIdAndUpdate(
+      articleId,
+      { image: fileName },
+      { new: true }
+    );
+
+    if (!updated) {
+      // Si el artículo no existe, eliminamos el archivo recién subido
+      try { fs.unlinkSync(req.file.path); } catch {}
+      return res.status(404).json({
+        status: "not_found",
+        message: "Article not found",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "Image uploaded and linked to article",
+      image: fileName,
+      article: updated,
+    });
+  } catch (error) {
+    // Borrar archivo ante cualquier error inesperado
+    if (req.file?.path) {
+      try { fs.unlinkSync(req.file.path); } catch {}
+    }
+    return res.status(500).json({
+      status: "error",
+      message: "Error uploading image",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
     create,
