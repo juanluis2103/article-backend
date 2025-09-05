@@ -16,7 +16,9 @@ app.use(express.json());
 
 // Rutas API
 const article_routes = require("./routes/article");
+const user_routes = require("./routes/user");
 app.use("/api", article_routes);
+app.use("/api/user", user_routes);
 
 // Swagger docs
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
