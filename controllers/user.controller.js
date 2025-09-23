@@ -14,14 +14,17 @@ function validateCreate(body = {}) {
   const nick = typeof body.nick === "string" ? body.nick.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const role = typeof body.role === "string" ? body.role.trim() : undefined;
+  const password = typeof body.password === "string" ? body.password.trim() : "";
+
 
   if (validator.isEmpty(name)) errors.push("name is required");
   if (validator.isEmpty(nick)) errors.push("nick is required");
   if (validator.isEmpty(email)) errors.push("email is required");
+  if (validator.isEmpty(password)) errors.push("password required");
   if (!validator.isEmpty(email) && !validator.isEmail(email)) errors.push("email is invalid");
   if (role && !allowedRoles.includes(role)) errors.push(`role must be one of: ${allowedRoles.join(", ")}`);
 
-  return { name, nick, email, role, errors };
+  return { name, nick, email, role, password, errors };
 }
 
 function validateUpdate(body = {}) {
@@ -47,6 +50,13 @@ function validateUpdate(body = {}) {
     else update.email = email;
   }
 
+  if (typeof body.password === "string") {
+    const password = body.password;
+    if (validator.isEmpty(password)) errors.push("password cannot be empty");
+    else if (!validator.isEmail(password)) errors.push("password is invalid");
+    else update.password = password;
+  }
+
   if (typeof body.role === "string") {
     const role = body.role.trim();
     if (!allowedRoles.includes(role)) errors.push(`role must be one of: ${allowedRoles.join(", ")}`);
@@ -65,9 +75,9 @@ function validateUpdate(body = {}) {
 // CREATE
 const createUser = async (req, res) => {
   try {
-    const { name, nick, email, role, errors } = validateCreate(req.body);
+    const { name, nick, email, role,password, errors,  } = validateCreate(req.body);
     if (errors.length) {
-      return res.status(400).json({ status: "error", message: "Validation failed", errors });
+      return res.status(400).json({ status: "error", message: "Validation! failed", errors });
     }
 
     // Verificar duplicados (email/nick)
@@ -86,6 +96,7 @@ const createUser = async (req, res) => {
       name,
       nick,
       email,
+      password,
       role: role || undefined, // si no viene, toma default del schema
     });
 

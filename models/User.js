@@ -6,7 +6,7 @@ const UserSchema = Schema({
     nick: {type: String, required: true},
     email: {type: String, required: true},
     role: {type: String, default: "user"},
-
+    password: {type: String,  required: true},
     created_at: {type: Date, default: Date.now},
     image: {type: String, default: "defaultUser.png"},
 })
