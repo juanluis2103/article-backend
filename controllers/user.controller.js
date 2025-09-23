@@ -2,6 +2,8 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const User = require("../models/User");
+const { createToken } = require("../services/jwt");
+const { json } = require("express");
 
 // Helpers
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -219,10 +221,65 @@ const deleteUserById = async (req, res) => {
   }
 };
 
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validaciones básicas
+    if (!email || !password) {
+      return res.status(400).json({
+        status: "error",
+        message: "Email and password are required",
+      });
+    }
+
+    // Buscar usuario por email
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    // Comparar contraseña (ahora mismo texto plano)
+    if (user.password !== password) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid credentials",
+      });
+    }
+
+    // Crear token JWT
+    const token = createToken(user);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Login successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        nick: user.nick,
+        email: user.email,
+        role: user.role,
+        image: user.image,
+      },
+      token,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: "Error en login",
+      error: err.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   listUsers,
   getUserById,
   updateUserById,
   deleteUserById,
+  loginUser
 };
