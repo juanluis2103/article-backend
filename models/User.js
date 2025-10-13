@@ -1,5 +1,6 @@
 
 const { Schema, model} = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const UserSchema = Schema({
     name: {type: String, required: true},
@@ -10,5 +11,8 @@ const UserSchema = Schema({
     created_at: {type: Date, default: Date.now},
     image: {type: String, default: "defaultUser.png"},
 })
+
+UserSchema.plugin(mongoosePaginate);
+
 
 module.exports = model("User", UserSchema)

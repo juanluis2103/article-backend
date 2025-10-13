@@ -2,9 +2,10 @@
 const { getUnixTime,addDays } = require("date-fns")
 const jwt = require("jwt-simple")
 const { create } = require("../controllers/article.controller")
+const variables = require("../env/variables")
 
 
-const secret = "SECRET_KEY_FOR_MY_PROJECT_66611"
+const secret = variables.secret;
 //clave secreta (para crear el token)
 
 //funcion de devolver tokens fun anonima

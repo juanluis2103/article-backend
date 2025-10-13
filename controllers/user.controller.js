@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const User = require("../models/User");
 const { createToken } = require("../services/jwt");
+const mongoosePaginate = require("mongoose-paginate-v2");
+
 const { json } = require("express");
 
 // Helpers
@@ -118,23 +120,23 @@ const listUsers = async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit || "10", 10), 1), 100);
-    const skip = (page - 1) * limit;
 
-    const [items, total] = await Promise.all([
-      User.find({})
-        .sort({ created_at: -1 })
-        .skip(skip)
-        .limit(limit),
-      User.countDocuments(),
-    ]);
+    const options = {
+      page,
+      limit,
+      sort: { created_at: -1 },
+      lean: true // opcional, devuelve objetos planos
+    };
+
+    const result = await User.paginate({}, options);
 
     return res.status(200).json({
       status: "success",
-      page,
-      limit,
-      total,
-      items: items.length,
-      users: items,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+      totalDocs: result.totalDocs,
+      users: result.docs
     });
   } catch (err) {
     return res.status(500).json({ status: "error", message: "Error listing users", error: err.message });
@@ -144,6 +146,7 @@ const listUsers = async (req, res) => {
 // GET by ID
 const getUserById = async (req, res) => {
   try {
+    console.log("get user by id")
     const { id } = req.params;
     if (!isValidObjectId(id)) {
       return res.status(400).json({ status: "error", message: "Invalid user ID" });
