@@ -10,6 +10,7 @@ const UserSchema = Schema({
     password: {type: String,  required: true},
     created_at: {type: Date, default: Date.now},
     image: {type: String, default: "defaultUser.png"},
+    followers : {type: Number, default:0}
 })
 
 UserSchema.plugin(mongoosePaginate);

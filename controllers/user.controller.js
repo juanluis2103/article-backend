@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const User = require("../models/User");
+const Follow = require("../models/Follow")
 const { createToken } = require("../services/jwt");
 const mongoosePaginate = require("mongoose-paginate-v2");
 
@@ -125,10 +126,18 @@ const listUsers = async (req, res) => {
       page,
       limit,
       sort: { created_at: -1 },
-      lean: true // opcional, devuelve objetos planos
+      lean: true
     };
 
     const result = await User.paginate({}, options);
+    //Cada usuario lo que va a aahcer es agregarle el conteo de usuers
+    const usersWithFollowers = await Promise.all(
+      result.docs.map(async (user) => {
+        const userFollowers = await countFollowers(user._id)
+        user.followers = userFollowers;
+        return user;
+      })
+    );
 
     return res.status(200).json({
       status: "success",
@@ -136,10 +145,14 @@ const listUsers = async (req, res) => {
       limit: result.limit,
       totalPages: result.totalPages,
       totalDocs: result.totalDocs,
-      users: result.docs
+      users: usersWithFollowers
     });
   } catch (err) {
-    return res.status(500).json({ status: "error", message: "Error listing users", error: err.message });
+    return res.status(500).json({
+      status: "error",
+      message: "Error listing users",
+      error: err.message
+    });
   }
 };
 
@@ -156,8 +169,13 @@ const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ status: "not_found", message: "User not found" });
     }
-
-    return res.status(200).json({ status: "success", user });
+    const followerCount = await countFollowers(id);
+    user.followers = followerCount;
+    console.log("followerCount:",followerCount)
+    return res.status(200).json({
+      status: "success",
+      user
+      });
   } catch (err) {
     return res.status(500).json({ status: "error", message: "Error retrieving user", error: err.message });
   }
@@ -277,6 +295,16 @@ const loginUser = async (req, res) => {
     });
   }
 };
+
+const countFollowers = async (userId) => {
+  try {
+    return await Follow.countDocuments({ followed: userId });
+  } catch (error) {
+    console.error(`Error counting followers for user ${userId}:`, error);
+    return 0;
+  }
+};
+
 
 module.exports = {
   createUser,
