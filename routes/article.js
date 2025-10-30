@@ -4,6 +4,7 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const ArticleController = require("../controllers/article.controller");
+const auth = require("../middlewares/auth")
 
 // File destiny
 const storage = multer.diskStorage({
@@ -30,7 +31,7 @@ const uploads = multer({
 });
 
 // Routes
-router.post("/create", ArticleController.create);
+router.post("/create",auth.auth, ArticleController.create);
 router.get("/getArticles", ArticleController.getArticles);
 router.get("/article/:id", ArticleController.getArticleById);
 router.delete("/article/:id", ArticleController.deleteArticleById);

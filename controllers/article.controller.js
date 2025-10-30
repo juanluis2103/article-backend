@@ -25,34 +25,54 @@ const validateArticle = (params = {}) => {
         
 
 const create = async (req, res) => {
-    let params = req.body;
+  try {
+    const params = req.body;
 
-    try {
-        let validator_title = !validator.isEmpty(params.title) &&
-                              !validator.isLength(params.title, { min: 5, max: 15 });
-        let validator_content = !validator.isEmpty(params.content);
+    // Validaciones
+    const validTitle =
+      typeof params.title === "string" &&
+      !validator.isEmpty(params.title.trim()) &&
+      validator.isLength(params.title.trim(), { min: 5, max: 30 });
 
-        if (!validator_title || !validator_content) {
-            throw new Error("Invalid fields");
-        }
+    const validContent =
+      typeof params.content === "string" &&
+      !validator.isEmpty(params.content.trim());
 
-        const article = new Article(params);
-        const savedArticle = await article.save();
-
-        return res.status(200).json({
-            status: "success",
-            message: "Article saved successfully",
-            article: savedArticle
-        });
-
-    } catch (e) {
-        return res.status(400).json({
-            status: "error",
-            message: "Error saving article",
-            error: e.message
-        });
+    if (!validTitle || !validContent) {
+      throw new Error("Invalid fields: title and content are required");
     }
-}
+
+    // Obtener ID de usuario autenticado del token
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        status: "error",
+        message: "Unauthorized: missing user in token",
+      });
+    }
+
+    // Crear el artículo asociado al usuario
+    const article = new Article({
+      user: userId,
+      title: params.title.trim(),
+      content: params.content.trim(),
+    });
+
+    const savedArticle = await article.save();
+
+    return res.status(201).json({
+      status: "success",
+      message: "Article created successfully",
+      article: savedArticle,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      status: "error",
+      message: "Error creating article",
+      error: error.message,
+    });
+  }
+};
 
 const getArticles = async (req, res) => {
     try {
