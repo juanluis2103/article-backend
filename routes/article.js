@@ -36,6 +36,9 @@ router.get("/getArticles", ArticleController.getArticles);
 router.get("/article/:id", ArticleController.getArticleById);
 router.delete("/article/:id", ArticleController.deleteArticleById);
 router.put("/article/:id", ArticleController.updateArticleById);
+// Nuevos métodos
+router.get("/articlesFromUser/:userId", ArticleController.getArticlesByUser);
+router.get("/feed", auth.auth, ArticleController.getFeedArticles);
 
 // Upload image and associate it to existent article
 router.post(

@@ -1,6 +1,7 @@
 
 const validator = require("validator");
 const Article = require("../models/Article")
+const Follow = require("../models/Follow")
 const path = require("path"); // <-- IMPORTANTE (te faltaba aquí)
 const fs = require("fs");
 
@@ -297,11 +298,86 @@ const uploadImage = async (req, res) => {
   }
 };
 
+const getArticlesByUser = async (req, res) => {
+ try {
+    const userId = req.params.userId;
+
+    const articles = await Article.find({ user: userId })
+      .sort({ date: -1 })
+      .populate("user", "name nick image");
+
+    if (!articles || articles.length === 0) {
+      return res.status(404).json({
+        status: "not_found",
+        message: "No articles found for this user",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      count: articles.length,
+      articles,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Error retrieving user's articles",
+      error: error.message,
+    });
+  }
+};
+
+const getFeedArticles = async (req, res) => {
+ try {
+    const userId = req.user.id; // viene del token JWT (middleware auth)
+
+    // 1️⃣ Obtener usuarios seguidos
+    const follows = await Follow.find({ user: userId }).select("followed");
+
+    if (!follows || follows.length === 0) {
+      return res.status(404).json({
+        status: "not_found",
+        message: "No sigues a ningún usuario todavía.",
+      });
+    }
+
+    const followedIds = follows.map(f => f.followed);
+
+    // 2️⃣ Buscar artículos de esos usuarios
+    const articles = await Article.find({ user: { $in: followedIds } })
+      .sort({ date: -1 })
+      .populate("user", "name nick image");
+
+    if (!articles || articles.length === 0) {
+      return res.status(404).json({
+        status: "not_found",
+        message: "No hay artículos de los usuarios que sigues.",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      count: articles.length,
+      articles,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Error al obtener los artículos del feed.",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
     create,
     getArticles,
     getArticleById,
     deleteArticleById,
     updateArticleById,
-    uploadImage
+    uploadImage,
+    getFeedArticles,
+    getArticlesByUser
 }

@@ -2,7 +2,7 @@ const { connection } = require("./connection/connection");
 const express = require("express");
 const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./swagger"); // 👈 importamos
+const swaggerSpec = require("./swagger");
 
 console.log("starting app...");
 
@@ -15,8 +15,8 @@ const port = 666;
 app.use(express.json());
 
 // Rutas API
-const article_routes = require("./routes/article");
 const user_routes = require("./routes/user");
+const article_routes = require("./routes/article");
 const follow_routes = require("./routes/follow");
 app.use("/api", article_routes);
 app.use("/api/user", user_routes);

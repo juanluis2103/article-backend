@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const User = require("../models/User");
+const Article = require("../models/Article");
 const Follow = require("../models/Follow")
 const { createToken } = require("../services/jwt");
 const mongoosePaginate = require("mongoose-paginate-v2");
@@ -156,6 +157,11 @@ const listUsers = async (req, res) => {
   }
 };
 
+const test = async (req, res) =>{
+   return res.status(200).json({
+      status: "success"
+      });
+}
 // GET by ID
 const getUserById = async (req, res) => {
   try {
@@ -305,6 +311,38 @@ const countFollowers = async (userId) => {
   }
 };
 
+const logoutUser = async (req, res) => {
+  try {
+    // Si el token viene en headers o cookies puedes leerlo:
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+    console.log("🚪 Logout request. Token recibido:", token ? "sí" : "no");
+
+    // Si no hay token, simplemente responder
+    if (!token) {
+      return res.status(200).json({
+        status: "success",
+        message: "User already logged out or no token provided",
+      });
+    }
+
+    // En caso de manejar lista de tokens válidos, aquí se podría invalidar.
+    // Por ahora, como los JWT no se almacenan, el logout es solo simbólico.
+    return res.status(200).json({
+      status: "success",
+      message: "Logout successful. Please delete the token on client side.",
+    });
+  } catch (err) {
+    console.error("💥 Error in logout:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Error during logout",
+      error: err.message,
+    });
+  }
+};
+
 
 module.exports = {
   createUser,
@@ -312,5 +350,6 @@ module.exports = {
   getUserById,
   updateUserById,
   deleteUserById,
-  loginUser
+  loginUser,
+  logoutUser
 };

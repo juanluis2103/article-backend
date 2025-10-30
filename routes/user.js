@@ -6,10 +6,12 @@ const auth = require("../middlewares/auth")
 
 // CRUD
 router.post("/register", UserController.createUser);
-router.get("/users", UserController.listUsers);
+router.get("/listAll", UserController.listUsers);
 router.get("/getById/:id", auth.auth , UserController.getUserById);
 router.put("/user/:id", UserController.updateUserById);
 router.delete("/user/:id", UserController.deleteUserById);
 router.post("/login", UserController.loginUser);
+router.post("/logout",auth.auth , UserController.logoutUser);
+
 
 module.exports = router;
