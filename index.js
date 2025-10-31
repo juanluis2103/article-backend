@@ -10,7 +10,7 @@ console.log("starting app...");
 connection();
 const app = express();
 app.use(cors());
-const port = 666;
+const port = 8082;
 
 // Middleware para JSON
 app.use(express.json());
