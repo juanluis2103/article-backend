@@ -1,8 +1,9 @@
 const { connection } = require("./connection/connection");
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
 const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./swagger");
+//const swaggerSpec = require("./swagger");
 
 console.log("starting app...");
 
@@ -22,7 +23,10 @@ app.use("/api", article_routes);
 app.use("/api/user", user_routes);
 app.use("/api/follow", follow_routes);
 
-// Swagger docs
+// Cargar el archivo JSON que generamos
+const swaggerSpec = JSON.parse(fs.readFileSync("./swagger.json", "utf8"));
+
+// Ruta de documentación
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Iniciar server
