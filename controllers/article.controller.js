@@ -2,7 +2,7 @@
 const validator = require("validator");
 const Article = require("../models/Article")
 const Follow = require("../models/Follow")
-const path = require("path"); // <-- IMPORTANTE (te faltaba aquí)
+const path = require("path");
 const fs = require("fs");
 
 const validateArticle = (params = {}) => {
@@ -18,7 +18,6 @@ const validateArticle = (params = {}) => {
     c !== undefined &&
     !validator.isEmpty(c);
 
-  // Requiere que al menos uno sea válido (title o content)
   if (!titleOk && !contentOk) {
     throw new Error("Invalid fields, please send title or content");
   }
@@ -29,7 +28,6 @@ const create = async (req, res) => {
   try {
     const params = req.body;
 
-    // Validaciones
     const validTitle =
       typeof params.title === "string" &&
       !validator.isEmpty(params.title.trim()) &&
@@ -43,7 +41,6 @@ const create = async (req, res) => {
       throw new Error("Invalid fields: title and content are required");
     }
 
-    // Obtener ID de usuario autenticado del token
     const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({
@@ -52,7 +49,6 @@ const create = async (req, res) => {
       });
     }
 
-    // Crear el artículo asociado al usuario
     const article = new Article({
       user: userId,
       title: params.title.trim(),
@@ -220,9 +216,7 @@ const uploadImage = async (req, res) => {
   const articleId = req.params.id;
 
   try {
-    // 1) Validar id
     if (!articleId) {
-      // Si subió archivo pero el id es inválido, borra el archivo
       if (req.file?.path) try { fs.unlinkSync(req.file.path); } catch {}
       return res.status(400).json({
         status: "error",
@@ -230,7 +224,6 @@ const uploadImage = async (req, res) => {
       });
     }
 
-    // 2) Validar existencia de archivo
     if (!req.file) {
       return res.status(400).json({
         status: "error",
@@ -238,14 +231,12 @@ const uploadImage = async (req, res) => {
       });
     }
 
-    // 3) Validar tipo de archivo (doble validación por seguridad)
     const mimetype = req.file.mimetype?.toLowerCase() || "";
-    const ext = path.extname(req.file.originalname).toLowerCase(); // .jpg / .png
+    const ext = path.extname(req.file.originalname).toLowerCase(); // .jpg /  .png
     const allowedMime = ["image/jpeg", "image/jpg", "image/png"];
     const allowedExt = [".jpg", ".jpeg", ".png"];
 
     if (!allowedMime.includes(mimetype)) {
-      // error 1: mimetype inválido
       try { fs.unlinkSync(req.file.path); } catch {}
       return res.status(400).json({
         status: "error",
@@ -254,7 +245,6 @@ const uploadImage = async (req, res) => {
     }
 
     if (!allowedExt.includes(ext)) {
-      // error 2: extensión inválida
       try { fs.unlinkSync(req.file.path); } catch {}
       return res.status(400).json({
         status: "error",
@@ -262,8 +252,7 @@ const uploadImage = async (req, res) => {
       });
     }
 
-    // 4) Asociar imagen al artículo
-    const fileName = req.file.filename; // p.e. article_1724500000000.jpg
+    const fileName = req.file.filename;
     const updated = await Article.findByIdAndUpdate(
       articleId,
       { image: fileName },
@@ -271,7 +260,6 @@ const uploadImage = async (req, res) => {
     );
 
     if (!updated) {
-      // Si el artículo no existe, eliminamos el archivo recién subido
       try { fs.unlinkSync(req.file.path); } catch {}
       return res.status(404).json({
         status: "not_found",
@@ -286,7 +274,6 @@ const uploadImage = async (req, res) => {
       article: updated,
     });
   } catch (error) {
-    // Borrar archivo ante cualquier error inesperado
     if (req.file?.path) {
       try { fs.unlinkSync(req.file.path); } catch {}
     }
@@ -329,9 +316,8 @@ const getArticlesByUser = async (req, res) => {
 
 const getFeedArticles = async (req, res) => {
  try {
-    const userId = req.user.id; // viene del token JWT (middleware auth)
+    const userId = req.user.id;
 
-    // 1️⃣ Obtener usuarios seguidos
     const follows = await Follow.find({ user: userId }).select("followed");
 
     if (!follows || follows.length === 0) {
@@ -343,7 +329,6 @@ const getFeedArticles = async (req, res) => {
 
     const followedIds = follows.map(f => f.followed);
 
-    // 2️⃣ Buscar artículos de esos usuarios
     const articles = await Article.find({ user: { $in: followedIds } })
       .sort({ date: -1 })
       .populate("user", "name nick image");

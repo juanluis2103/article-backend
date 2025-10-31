@@ -13,13 +13,13 @@ const saveFollow = async (req, res) => {
         const followedId = req.body.followed;
 
         if (userId === followedId) {
-            return res.status(400).send({ message: "No puedes seguirte a ti mismo." });
+            return res.status(400).send({ message: "Cant follow yourself" });
         }
 
         // Verificar si ya lo sigue
         const existe = await Follow.findOne({ user: userId, followed: followedId });
         if (existe) {
-            return res.status(400).send({ message: "Ya sigues a este usuario." });
+            return res.status(400).send({ message: "Already following this user" });
         }
 
         const follow = new Follow({
@@ -30,13 +30,13 @@ const saveFollow = async (req, res) => {
         const followStored = await follow.save();
 
         return res.status(200).send({
-            message: "Has empezado a seguir al usuario.",
+            message: "You are now following.",
             follow: followStored
         });
 
     } catch (error) {
         return res.status(500).send({
-            message: "Error al intentar seguir al usuario.",
+            message: "Fail to follow the user.",
             error: error.message
         });
     }
@@ -53,16 +53,16 @@ const unfollow = async (req, res) => {
         });
 
         if (!deleted) {
-            return res.status(404).send({ message: "No estabas siguiendo a este usuario." });
+            return res.status(404).send({ message: "You were not following this user" });
         }
 
         return res.status(200).send({
-            message: "Has dejado de seguir al usuario."
+            message: "Unfollowed user!."
         });
 
     } catch (error) {
         return res.status(500).send({
-            message: "Error al intentar dejar de seguir.",
+            message: "ERROR trying to follow the user.",
             error: error.message
         });
     }
@@ -84,7 +84,7 @@ const followersList = async (req, res) => {
 
     } catch (error) {
         return res.status(500).send({
-            message: "Error al listar seguidores.",
+            message: "Error listing users",
             error: error.message
         });
     }

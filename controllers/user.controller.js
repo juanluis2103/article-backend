@@ -117,7 +117,7 @@ const createUser = async (req, res) => {
   }
 };
 
-// LIST (con paginación simple)
+// LIST paginado
 const listUsers = async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
@@ -187,7 +187,6 @@ const getUserById = async (req, res) => {
   }
 };
 
-// UPDATE
 const updateUserById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -313,13 +312,11 @@ const countFollowers = async (userId) => {
 
 const logoutUser = async (req, res) => {
   try {
-    // Si el token viene en headers o cookies puedes leerlo:
     const authHeader = req.headers.authorization || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
     console.log("🚪 Logout request. Token recibido:", token ? "sí" : "no");
 
-    // Si no hay token, simplemente responder
     if (!token) {
       return res.status(200).json({
         status: "success",
